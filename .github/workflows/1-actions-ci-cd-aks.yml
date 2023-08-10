@@ -69,6 +69,8 @@ jobs:
       with:
         push: true
         tags: $DOCKER_REPOSITORY/$IMAGE_NAME-uat:$GITHUB_RUN_NUMBER,$DOCKER_REPOSITORY/$IMAGE_NAME-uat:latest
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Push image to PROD
       uses: docker/build-push-action@v3
       if: ${{ github.ref == 'refs/heads/release' }}
