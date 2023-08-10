@@ -40,7 +40,7 @@ jobs:
         file: ./WebApp/Dockerfile
         context: ./WebApp
         push: true
-        tags: ${{ env.IMAGE_NAME }}-dev:${{ env.GITHUB_RUN_NUMBER }},${{ env.IMAGE_NAME }}-dev:latest
+        tags: ${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }},${{ env.IMAGE_NAME }}-dev:latest
 
     - name: Tag Image to DEV Registry
       if: ${{ github.ref == 'refs/heads/main' }}
