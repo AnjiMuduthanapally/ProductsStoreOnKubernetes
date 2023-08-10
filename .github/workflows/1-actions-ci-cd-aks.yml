@@ -44,7 +44,7 @@ jobs:
 
     - name: Tag Image to DEV Registry
       if: ${{ github.ref == 'refs/heads/main' }}
-      run:
+      run: |
         docker tag ${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }} ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }}
         docker tag ${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }} ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:latest
     - name: List images
