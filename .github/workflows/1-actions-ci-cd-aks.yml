@@ -45,8 +45,8 @@ jobs:
     - name: Tag Image to DEV Registry
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
-        docker tag ${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }} ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }}
-        docker tag ${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }} ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:latest
+        docker tag ${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }} docker.io/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }}
+        docker tag ${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }} docker.io/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:latest
     - name: List images
       run: docker images
     - name: Tag Image to UAT Registry
@@ -64,7 +64,7 @@ jobs:
       if: ${{ github.ref == 'refs/heads/main' }}
       with:
         push: true
-        tags: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }},${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:latest
+        tags: docker.io/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }},docker.io/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:latest
     - name: Push image to UAT
       uses: docker/build-push-action@v3
       if: ${{ github.ref == 'refs/heads/release' }}
