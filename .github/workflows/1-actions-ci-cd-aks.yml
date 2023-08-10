@@ -92,6 +92,9 @@ jobs:
         tokenSuffix: __ # optional, default is }#
       env:
         IMAGE: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }}
+        
+    - name: cat dev-values.yaml
+      run: cat ./charts/firstchart/dev-values.yaml
     - uses: cschleiden/replace-tokens@v1
       if: ${{ github.ref == 'refs/heads/release' }}
       with:
