@@ -11,45 +11,121 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-jobs:
 
-  build-deploy-aks:
+jobs:
+  build:
     runs-on: ubuntu-latest
+    environment: Build
     env:
       DOCKER_REPOSITORY: houssemdocker # name of Docker Hub ID
       IMAGE_NAME: webapp
       IMAGE_TAG: ${{ github.run_number }} # $GITHUB_RUN_NUMBER
       
-      CLUSTER_NAME: aks-cluster
-      RESOURSE_GROUP: rg-aks-cluster
+
     
     steps:
 
     - name: Git Checkout
       uses: actions/checkout@v2
   
-    - name: Build Docker Image
-      run:
-        docker build ./MvcApp/ --file ./MvcApp/Dockerfile --tag $DOCKER_REPOSITORY/$IMAGE_NAME:$GITHUB_RUN_NUMBER --build-arg=token=ZGEzNTQ5Y2QyNjAx --no-cache
-
-    - name: Login to Docker Hub
-      run: |
-        echo "${{ secrets.DOCKER_REPOSITORY_PASSWORD }}" | docker login -u $DOCKER_REPOSITORY --password-stdin
-  
-    - name: Push Image to Docker Hub
-      run:
-        docker push $DOCKER_REPOSITORY/$IMAGE_NAME:$GITHUB_RUN_NUMBER
-   
-    - uses: cschleiden/replace-tokens@v1
+    - name: Login to Container Registry
+      uses: docker/login-action@v2
       with:
-        files: '["charts/firstchart/*.yaml"]'
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Build Image
+      uses: docker/build-push-action@v4
+      with:
+        file: ./WebApp/Dockerfile
+        context: ./WebApp
+        push: true
+        tags: $IMAGE_NAME-dev:$GITHUB_RUN_NUMBER,$IMAGE_NAME-dev:latest
+
+    - name: Tag Image to DEV Registry
+      if: ${{ github.ref == 'refs/heads/main' }}
+      run:
+        docker tag $IMAGE_NAME:$GITHUB_RUN_NUMBER $DOCKER_REPOSITORY/$IMAGE_NAME-dev:$GITHUB_RUN_NUMBER
+
+    - name: Tag Image to UAT Registry
+      if: ${{ github.ref == 'refs/heads/release' }}
+      run:
+        docker tag $IMAGE_NAME:$GITHUB_RUN_NUMBER $DOCKER_REPOSITORY/$IMAGE_NAME-uat:$GITHUB_RUN_NUMBER
+
+    - name: Tag Image to PROD Registry
+      if: ${{ github.ref == 'refs/heads/release' }}
+      run:
+        docker tag $IMAGE_NAME:$GITHUB_RUN_NUMBER $DOCKER_REPOSITORY/$IMAGE_NAME-prod:$GITHUB_RUN_NUMBER
+
+    - name: Push image to DEV
+      uses: docker/build-push-action@v3
+      if: ${{ github.ref == 'refs/heads/main' }}
+      with:
+        push: true
+        tags: $DOCKER_REPOSITORY/$IMAGE_NAME-dev:$GITHUB_RUN_NUMBER,$DOCKER_REPOSITORY/$IMAGE_NAME-dev:latest
+    - name: Push image to UAT
+      uses: docker/build-push-action@v3
+      if: ${{ github.ref == 'refs/heads/release' }}
+      with:
+        push: true
+        tags: $DOCKER_REPOSITORY/$IMAGE_NAME-uat:$GITHUB_RUN_NUMBER,$DOCKER_REPOSITORY/$IMAGE_NAME-uat:latest
+    - name: Push image to PROD
+      uses: docker/build-push-action@v3
+      if: ${{ github.ref == 'refs/heads/release' }}
+      with:
+        push: true
+        tags: $DOCKER_REPOSITORY/$IMAGE_NAME-prod:$GITHUB_RUN_NUMBER,$DOCKER_REPOSITORY/$IMAGE_NAME-prod:latest
+
+
+    - uses: cschleiden/replace-tokens@v1
+      if: ${{ github.ref == 'refs/heads/main' }}
+      with:
+        files: '["charts/firstchart/dev-values.yaml"]'
         tokenPrefix: __ # optional, default is #{
         tokenSuffix: __ # optional, default is }#
       env:
-        DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
-        IMAGE_NAME: ${{ env.IMAGE_NAME }}
-        IMAGE_TAG: ${{ env.IMAGE_TAG }}
-        
+        IMAGE: $DOCKER_REPOSITORY/$IMAGE_NAME-dev:$GITHUB_RUN_NUMBER
+    - uses: cschleiden/replace-tokens@v1
+      if: ${{ github.ref == 'refs/heads/release' }}
+      with:
+        files: '["charts/firstchart/uat-values.yaml"]'
+        tokenPrefix: __ # optional, default is #{
+        tokenSuffix: __ # optional, default is }#
+      env:
+        IMAGE: $DOCKER_REPOSITORY/$IMAGE_NAME-uat:$GITHUB_RUN_NUMBER
+    - uses: cschleiden/replace-tokens@v1
+      if: ${{ github.ref == 'refs/heads/release' }}
+      with:
+        files: '["charts/firstchart/prod-values.yaml"]'
+        tokenPrefix: __ # optional, default is #{
+        tokenSuffix: __ # optional, default is }#
+      env:
+        IMAGE: $DOCKER_REPOSITORY/$IMAGE_NAME-prod:$GITHUB_RUN_NUMBER
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: Helm-charts
+        path: |
+          ./charts/firstchart/   
+
+
+
+  DEPLOYtoUAT:
+    runs-on: ubuntu-latest
+    environment: UAT
+    env:
+      CLUSTER_NAME: aks-cluster
+      RESOURSE_GROUP: rg-aks-cluster
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: Helm-charts
+
+    - name: Display structure of downloaded files
+      run: ls -R
+
+
     # Set the target AKS cluster.
     - uses: Azure/aks-set-context@v1
       with:

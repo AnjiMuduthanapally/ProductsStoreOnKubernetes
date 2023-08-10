@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: __DOCKER_REPOSITORY__/__IMAGE_NAME__:__IMAGE_TAG__
+  repository: __IMAGE_
   pullPolicy: IfNotPresent
 
 
