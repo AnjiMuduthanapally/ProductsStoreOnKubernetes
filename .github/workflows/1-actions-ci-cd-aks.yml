@@ -136,7 +136,7 @@ jobs:
       
     - name: cat files
       run: |
-        cat dev-values.yaml
+        cat ./firstchart/dev-values.yaml
 
 
     # Set the target AKS cluster.
