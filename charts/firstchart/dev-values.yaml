@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: __IMAGE_
+  repository: __IMAGE__
   pullPolicy: IfNotPresent
 
 
