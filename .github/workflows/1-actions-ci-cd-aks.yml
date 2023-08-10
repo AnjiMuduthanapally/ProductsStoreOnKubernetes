@@ -109,12 +109,12 @@ jobs:
       env:
         IMAGE: $DOCKER_REPOSITORY/$IMAGE_NAME-prod:$GITHUB_RUN_NUMBER
 
-    - name: Archive production artifacts
+    - name: Archive artifacts
       uses: actions/upload-artifact@v3
       with:
         name: Helm-charts
         path: |
-          ./charts/firstchart/   
+          ./charts/   
 
 
 
@@ -133,6 +133,10 @@ jobs:
 
     - name: Display structure of downloaded files
       run: ls -R
+      
+    - name: cat files
+      run: |
+        cat dev-values.yaml
 
 
     # Set the target AKS cluster.
