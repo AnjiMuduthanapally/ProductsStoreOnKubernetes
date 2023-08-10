@@ -46,7 +46,8 @@ jobs:
       if: ${{ github.ref == 'refs/heads/main' }}
       run:
         docker tag ${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }} ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_NAME }}-dev:${{ env.IMAGE_TAG }}
-
+    - name: List images
+      run: docker images
     - name: Tag Image to UAT Registry
       if: ${{ github.ref == 'refs/heads/release' }}
       run:
@@ -69,8 +70,8 @@ jobs:
       with:
         push: true
         tags: $DOCKER_REPOSITORY/$IMAGE_NAME-uat:$GITHUB_RUN_NUMBER,$DOCKER_REPOSITORY/$IMAGE_NAME-uat:latest
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+#        username: ${{ secrets.DOCKERHUB_USERNAME }}
+#        password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Push image to PROD
       uses: docker/build-push-action@v3
       if: ${{ github.ref == 'refs/heads/release' }}
