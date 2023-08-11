@@ -190,7 +190,7 @@ jobs:
 
   DEPLOYtoPROD:
     runs-on: ubuntu-latest
-    needs: [build, DEPLOYtoDEV]
+    needs: [build, DEPLOYtoUAT]
     if: ${{ github.ref == 'refs/heads/release' }}
     environment: UAT
     env:
