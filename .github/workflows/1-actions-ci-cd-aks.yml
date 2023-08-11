@@ -144,28 +144,16 @@ jobs:
 
 
     # Set the target AKS cluster.
-   # - uses: Azure/aks-set-context@v1
-   #   with:
-   #     creds: ${{ secrets.AZURE_CREDENTIALS }}
-   #     cluster-name: ${{ env.CLUSTER_NAME }}
-   #     resource-group: ${{ env.RESOURSE_GROUP }}
-#
-   # - uses: Azure/k8s-deploy@v1
-   #   with:
-   #     manifests: |
-   #       kubernetes/mssql-pv.azure.yaml
-   #       kubernetes/mssql-configmap.yaml
-   #       kubernetes/mssql-secret.yaml
-   #       kubernetes/mssql-deployment.yaml
-   #       kubernetes/mvc-deployment.azure.yaml
-   # 
-   # - name: Run Kube-Bench to check cluster config
-   #   continue-on-error: true
-   #   run: |
-   #     kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job-aks.yaml
-   #     sleep 30s
-   #     kubectl logs job.batch/kube-bench
-   #     kubectl delete job.batch/kube-bench
+    - name: Helm Deploy to aks
+      uses: Azure/aks-set-context@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        cluster-name: ${{ env.CLUSTER_NAME }}
+        resource-group: ${{ env.RESOURSE_GROUP }}
+
+    - uses: Azure/k8s-deploy@v1
+      with:
+        manifests: ./firstchart 
    
    
   DEPLOYtoUAT:
@@ -187,10 +175,22 @@ jobs:
     - name: cat files
       run: |
         cat ./firstchart/dev-values.yaml
+        
+    # Set the target AKS cluster.
+    - name: Helm Deploy to aks
+      uses: Azure/aks-set-context@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        cluster-name: ${{ env.CLUSTER_NAME }}
+        resource-group: ${{ env.RESOURSE_GROUP }}
+
+    - uses: Azure/k8s-deploy@v1
+      with:
+        manifests: ./firstchart 
 
   DEPLOYtoPROD:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, DEPLOYtoDEV]
     if: ${{ github.ref == 'refs/heads/release' }}
     environment: UAT
     env:
@@ -207,3 +207,15 @@ jobs:
     - name: cat files
       run: |
         cat ./firstchart/dev-values.yaml
+        
+    # Set the target AKS cluster.
+    - name: Helm Deploy to aks
+      uses: Azure/aks-set-context@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        cluster-name: ${{ env.CLUSTER_NAME }}
+        resource-group: ${{ env.RESOURSE_GROUP }}
+
+    - uses: Azure/k8s-deploy@v1
+      with:
+        manifests: ./firstchart 
